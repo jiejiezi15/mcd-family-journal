@@ -1,0 +1,18 @@
+# 凭证与本地配置 —— 严禁提交任何真实 Token
+.env
+*.env
+mcp-config.json
+*mcp.json
+*token*
+*secret*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 系统与编辑器
+.DS_Store
+.idea/
+.vscode/
