@@ -50,15 +50,17 @@ MODE_TEXT = {
     "personal": {
         "title": "我与麦当劳",
         "badge": "麦当劳个人档案",
-        "taste": "你的口味画像",
-        "plate": "你的餐盘构成",
+        "taste": "口味画像",
+        "plate": "餐盘构成",
+        "insight": "AI 观察 · 关于你",
         "first_stat": "你吃过",
     },
     "family": {
         "title": "我家与麦当劳",
         "badge": "麦当劳家庭档案",
-        "taste": "一家人的口味画像",
-        "plate": "这家人的餐盘构成",
+        "taste": "口味画像",
+        "plate": "餐盘构成",
+        "insight": "AI 观察 · 关于这一家",
         "first_stat": "全家吃过",
     },
 }
@@ -168,11 +170,26 @@ def is_kid_item(name):
     return any(k in name for k in KID_KEYWORDS)
 
 
+def time_slot(hour):
+    if 5 <= hour < 10:
+        return "早餐"
+    if 10 <= hour < 15:
+        return "午餐"
+    if 15 <= hour < 17:
+        return "下午茶"
+    if 17 <= hour < 22:
+        return "晚餐"
+    return "夜宵"
+
+
 def analyze(orders):
     stores = Counter()
     items = Counter()
     cats = Counter()
     months = Counter()
+    slots = Counter()
+    week = Counter()
+    pairs = Counter()
     kid_orders = []
     kid_flavor = Counter()
     total_amount = 0.0
@@ -185,17 +202,25 @@ def analyze(orders):
         if created:
             times.append(created)
             months[created[:7]] += 1
+            try:
+                slots[time_slot(int(created[11:13]))] += 1
+                day = datetime.strptime(created[:10], "%Y-%m-%d")
+                week["周末" if day.weekday() >= 5 else "工作日"] += 1
+            except (ValueError, IndexError):
+                pass
         try:
             total_amount += float(order.get("realTotalAmount") or 0)
         except ValueError:
             pass
 
         has_kid = False
+        seen = set()
         for prod in order.get("orderProductList") or []:
             pname = prod.get("productName") or ""
             qty = int(prod.get("quantity") or 1)
             items[pname] += qty
             cats[classify(pname)] += qty
+            seen.add(pname)
             if is_kid_item(pname):
                 has_kid = True
                 kid_flavor[pname] += qty
@@ -211,7 +236,23 @@ def analyze(orders):
         if has_kid:
             kid_orders.append(order)
 
+        names = sorted(seen)
+        for i in range(len(names)):
+            for j in range(i + 1, len(names)):
+                pairs[(names[i], names[j])] += 1
+
     kid_orders.sort(key=lambda o: o.get("createTime") or "")
+
+    span_days = 0
+    if len(times) >= 2:
+        try:
+            first = datetime.strptime(min(times)[:10], "%Y-%m-%d")
+            last = datetime.strptime(max(times)[:10], "%Y-%m-%d")
+            span_days = max((last - first).days, 1)
+        except ValueError:
+            span_days = 0
+    total_items = sum(items.values()) or 1
+    top_store_hit = stores.most_common(1)[0][1] if stores else 0
     return {
         "stores": stores,
         "items": items,
@@ -222,6 +263,15 @@ def analyze(orders):
         "total_amount": total_amount,
         "times": sorted(times),
         "count": len(orders),
+        "slots": slots,
+        "week": week,
+        "pairs": pairs,
+        "unique_items": len(items),
+        "total_items": total_items,
+        "explore": round(len(items) / total_items, 2),
+        "avg_gap": round(span_days / max(len(orders) - 1, 1)) if len(orders) > 1 else 0,
+        "avg_amount": round(total_amount / len(orders), 1) if orders else 0,
+        "loyalty": round(top_store_hit / len(orders) * 100) if orders else 0,
     }
 
 
@@ -292,9 +342,73 @@ def render_taste(items):
     top = scores[0][1]
     out = []
     for label, score in scores[:7]:
-        cls = "tag hot" if score == top else "tag"
-        out.append('<span class="' + cls + '">' + label + " ×" + str(score) + "</span>")
+        alpha = round(0.18 + 0.82 * (score / top), 2)
+        fg = "#fff" if alpha > 0.55 else "#8A3A00"
+        out.append(
+            '<span class="tag" style="background:rgba(218,41,28,' + str(alpha)
+            + ");color:" + fg + '">' + label + " ×" + str(score) + "</span>"
+        )
     return "".join(out)
+
+
+def render_habits(stat):
+    bars = render_bars(stat["slots"], "顿")
+    week = stat["week"]
+    total = sum(week.values()) or 1
+    seg = "　".join(k + " " + str(round(v / total * 100)) + "%" for k, v in week.most_common())
+    return (
+        bars
+        + '<div class="bar"><div class="t"><span>工作日 / 周末</span><span>' + seg + "</span></div></div>"
+    )
+
+
+def render_pairs(stat):
+    pairs = [(k, v) for k, v in stat["pairs"].most_common() if v > 1]
+    if not pairs:
+        return '<div class="empty">还没形成固定搭配，再吃几顿看看</div>'
+    rows = []
+    for (a, b), count in pairs[:5]:
+        rows.append(
+            '<div class="p"><span>' + a + " + " + b + "</span><span>同单 " + str(count) + " 次</span></div>"
+        )
+    return '<div class="pair">' + "".join(rows) + "</div>"
+
+
+def render_insights(stat, mode):
+    who = "你" if mode == "personal" else "这一家人"
+    lines = []
+    gap = stat["avg_gap"]
+    if gap:
+        if gap <= 7:
+            tone = "麦当劳基本是" + who + "的日常食堂"
+        elif gap <= 30:
+            tone = "算得上常客"
+        else:
+            tone = "属于偶尔解馋"
+        lines.append("平均 " + str(gap) + " 天吃一顿，" + tone)
+    top_item = stat["items"].most_common(1)
+    if top_item:
+        lines.append(
+            "最离不开的是「" + top_item[0][0] + "」，累计 " + str(top_item[0][1]) + " 份"
+        )
+    if stat["loyalty"] >= 70:
+        lines.append(str(stat["loyalty"]) + "% 的单下在同一家店 —— 认准了就不换")
+    elif stat["loyalty"]:
+        lines.append("最常去的店占 " + str(stat["loyalty"]) + "%，不算死忠，会换地方尝鲜")
+    explore = stat["explore"]
+    if explore >= 0.6:
+        lines.append("探索指数 " + str(explore) + "：点得很花，什么都想试")
+    elif explore <= 0.3:
+        lines.append("探索指数 " + str(explore) + "：很专一，来回就那几样")
+    else:
+        lines.append("探索指数 " + str(explore) + "：有新意，也有固定款")
+    slots = stat["slots"].most_common(1)
+    if slots:
+        lines.append("最常在" + slots[0][0] + "时段下单，共 " + str(slots[0][1]) + " 顿")
+    if stat["avg_amount"]:
+        lines.append("单均消费 ¥" + str(stat["avg_amount"]))
+    body = "".join('<div class="li"><i>·</i><span>' + t + "</span></div>" for t in lines)
+    return '<div class="insight">' + body + "</div>"
 
 
 def render_kid_block(stat, mode):
@@ -329,11 +443,14 @@ def build_sections(stat, mode):
         render_kid_block(stat, mode)
         + '<div class="sec"><h2>' + text["taste"] + '</h2><div class="tags">'
         + render_taste(stat["items"]) + "</div></div>"
+        + '<div class="sec"><h2>' + text["insight"] + "</h2>" + render_insights(stat, mode) + "</div>"
         + '<div class="sec"><h2>' + text["plate"] + "</h2>" + render_bars(stat["cats"]) + "</div>"
+        + '<div class="sec"><h2>什么时候吃</h2>' + render_habits(stat) + "</div>"
         + '<div class="sec"><h2>月度节奏</h2><div class="months">'
         + render_months(stat["months"]) + "</div></div>"
         + '<div class="sec"><h2>点得最多的单品</h2>'
         + render_top_items(stat["items"]) + "</div>"
+        + '<div class="sec"><h2>常点的搭配</h2>' + render_pairs(stat) + "</div>"
     )
 
 
@@ -373,7 +490,7 @@ def safe_json(value):
     return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
 
 
-def build_html(stat, points, default, orders):
+def build_html(stat, points, default, orders, auto_pick):
     times = stat["times"]
     span = ""
     if times:
@@ -406,6 +523,7 @@ def build_html(stat, points, default, orders):
         template.replace("{{MODE_JSON}}", safe_json(modes))
         .replace("{{VIEWS_JSON}}", safe_json(views))
         .replace("{{DETAILS_JSON}}", safe_json(details))
+        .replace("{{AUTO_PICK}}", "true" if auto_pick else "false")
         .replace("{{STATS}}", stats)
         .replace("{{VIEW_DEFAULT}}", views[default])
         .replace("{{DEFAULT_MODE}}", default)
@@ -459,10 +577,12 @@ def main():
         points = ""
 
     stat = analyze(orders)
-    default = args.mode
-    if default == "auto":
+    auto_pick = args.mode == "auto"
+    if auto_pick:
         default = "family" if stat["kid_orders"] else "personal"
-    html = build_html(stat, points, default, orders)
+    else:
+        default = args.mode
+    html = build_html(stat, points, default, orders, auto_pick)
 
     out_dir = Path(args.out).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)

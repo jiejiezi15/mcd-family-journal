@@ -41,9 +41,7 @@
   .kid .row span:first-child { color:#7A6F62; }
   .kid .row span:last-child { font-weight:600; }
   .tags { display:flex; flex-wrap:wrap; gap:8px; }
-  .tag { background:#FFF0C2; color:#8A5A00; font-size:12px; padding:6px 12px; border-radius:16px; cursor:pointer; border:1px solid transparent; }
-  .tag:hover { border-color:#E3C46A; }
-  .tag.hot { background:#DA291C; color:#fff; }
+  .tag { font-size:12px; padding:6px 12px; border-radius:16px; }
   .bar { margin-bottom:11px; }
   .bar .t { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
   .bar .t span:last-child { color:#7A6F62; }
@@ -55,11 +53,49 @@
   .months .m:hover i { background:#E8A800; }
   .months .m.now i { background:#DA291C; }
   .months .m b { font-size:10px; color:#9A8F82; margin-top:6px; font-weight:400; }
+  .insight { background:#FFF9E8; border-radius:14px; padding:6px 18px; }
+  .insight .li { display:flex; gap:10px; padding:11px 0; border-bottom:1px dashed #EFE2C4; font-size:13px; line-height:1.6; }
+  .insight .li:last-child { border-bottom:none; }
+  .insight .li i { font-style:normal; color:#DA291C; font-weight:600; flex-shrink:0; }
+  .pair { display:flex; flex-direction:column; gap:8px; }
+  .pair .p { background:#FBF8F2; border-radius:10px; padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; }
+  .pair .p span:last-child { color:#9A8F82; font-size:12px; }
   .empty { background:#F7F5F1; border-radius:12px; padding:22px; text-align:center; font-size:13px; color:#7A6F62; }
   .foot { border-top:1px solid #F0ECE5; padding:16px 36px 20px; display:flex; justify-content:space-between; font-size:11px; color:#9A8F82; }
+
+  .picker { position:fixed; inset:0; background:#F5F3EF; display:none; align-items:center; justify-content:center; z-index:9; }
+  .picker.on { display:flex; }
+  .picker .box { text-align:center; max-width:600px; padding:24px; }
+  .picker h2 { font-size:20px; font-weight:600; margin-bottom:6px; }
+  .picker .sub { font-size:13px; color:#7A6F62; margin-bottom:26px; }
+  .picker .opts { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .picker .opt { background:#fff; border:2px solid transparent; border-radius:16px; padding:26px 20px; cursor:pointer; transition:.15s; box-shadow:0 2px 16px rgba(31,27,22,.06); }
+  .picker .opt:hover { border-color:#DA291C; transform:translateY(-2px); }
+  .picker .opt .em { font-size:30px; font-weight:600; color:#DA291C; margin-bottom:10px; }
+  .picker .opt .tt { font-size:15px; font-weight:600; margin-bottom:6px; }
+  .picker .opt .ds { font-size:12px; color:#7A6F62; line-height:1.6; }
 </style>
 </head>
 <body>
+<div class="picker" id="picker">
+  <div class="box">
+    <h2>想看哪一种档案？</h2>
+    <div class="sub">选一个视角，随时可以在页面顶部切换</div>
+    <div class="opts">
+      <div class="opt" data-pick="personal">
+        <div class="em">1</div>
+        <div class="tt">个人版</div>
+        <div class="ds">看自己的口味偏好、消费习惯<br>和一个人的麦当劳轨迹</div>
+      </div>
+      <div class="opt" data-pick="family">
+        <div class="em">2+</div>
+        <div class="tt">家庭版</div>
+        <div class="ds">看一家人的口味画像<br>有儿童餐订单时长出娃的成长册</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div class="head">
     <div class="badge" id="badge">{{BADGE}}</div>
@@ -85,6 +121,7 @@
 var MODES = {{MODE_JSON}};
 var VIEWS = {{VIEWS_JSON}};
 var DETAILS = {{DETAILS_JSON}};
+var AUTO_PICK = {{AUTO_PICK}};
 var current = "";
 
 function setMode(mode) {
@@ -120,6 +157,11 @@ function showDetail(key) {
   paintCards(key);
 }
 
+function closePicker(mode) {
+  document.getElementById("picker").className = "picker";
+  setMode(mode);
+}
+
 var cards = document.querySelectorAll(".stat");
 for (var i = 0; i < cards.length; i++) {
   cards[i].addEventListener("click", function () {
@@ -132,7 +174,18 @@ for (var i = 0; i < btns.length; i++) {
     setMode(this.getAttribute("data-mode"));
   });
 }
-setMode("{{DEFAULT_MODE}}");
+var opts = document.querySelectorAll(".opt");
+for (var i = 0; i < opts.length; i++) {
+  opts[i].addEventListener("click", function () {
+    closePicker(this.getAttribute("data-pick"));
+  });
+}
+
+if (AUTO_PICK) {
+  document.getElementById("picker").className = "picker on";
+} else {
+  setMode("{{DEFAULT_MODE}}");
+}
 </script>
 </body>
 </html>
