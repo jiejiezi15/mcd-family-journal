@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#F5F3EF; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; color:#1F1B16; padding:32px 16px; }
+  .card { max-width:720px; margin:0 auto; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 2px 24px rgba(31,27,22,.08); }
+  .head { background:#DA291C; color:#fff; padding:32px 36px 28px; position:relative; }
+  .head::after { content:""; position:absolute; right:-40px; top:-40px; width:150px; height:150px; border-radius:50%; background:#FFC72C; opacity:.22; }
+  .badge { display:inline-block; background:#FFC72C; color:#1F1B16; font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; margin-bottom:14px; }
+  .head h1 { font-size:27px; font-weight:600; letter-spacing:.5px; line-height:1.3; }
+  .head p { margin-top:8px; font-size:13px; opacity:.85; }
+  .body { padding:28px 36px 32px; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:26px; }
+  .stat { background:#FFF9E8; border-radius:12px; padding:14px 12px; text-align:center; }
+  .stat .n { font-size:24px; font-weight:600; color:#DA291C; line-height:1.2; }
+  .stat .n small { font-size:13px; font-weight:500; }
+  .stat .l { font-size:11px; color:#7A6F62; margin-top:5px; }
+  .sec { margin-bottom:24px; }
+  .sec h2 { font-size:14px; font-weight:600; color:#1F1B16; margin-bottom:12px; padding-left:9px; border-left:3px solid #FFC72C; }
+  .kid { background:#FFF4F2; border:1px solid #F7D9D3; border-radius:14px; padding:18px 20px; }
+  .kid .row { display:flex; justify-content:space-between; padding:7px 0; font-size:13px; border-bottom:1px dashed #EFD6D0; }
+  .kid .row:last-child { border-bottom:none; }
+  .kid .row span:first-child { color:#7A6F62; }
+  .kid .row span:last-child { font-weight:600; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; }
+  .tag { background:#FFF0C2; color:#8A5A00; font-size:12px; padding:6px 12px; border-radius:16px; }
+  .tag.hot { background:#DA291C; color:#fff; }
+  .bar { margin-bottom:11px; }
+  .bar .t { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+  .bar .t span:last-child { color:#7A6F62; }
+  .bar .track { height:7px; background:#F0ECE5; border-radius:4px; overflow:hidden; }
+  .bar .fill { height:100%; border-radius:4px; }
+  .months { display:flex; align-items:flex-end; gap:6px; height:88px; }
+  .months .m { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .months .m i { display:block; width:100%; background:#FFC72C; border-radius:4px 4px 0 0; min-height:3px; }
+  .months .m.now i { background:#DA291C; }
+  .months .m b { font-size:10px; color:#9A8F82; margin-top:6px; font-weight:400; }
+  .foot { border-top:1px solid #F0ECE5; padding:16px 36px 20px; display:flex; justify-content:space-between; font-size:11px; color:#9A8F82; }
+  .empty { background:#F7F5F1; border-radius:12px; padding:22px; text-align:center; font-size:13px; color:#7A6F62; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <div class="badge">{{BADGE}}</div>
+    <h1>{{TITLE}}</h1>
+    <p>{{SUBTITLE}}</p>
+  </div>
+  <div class="body">
+    <div class="stats">{{STATS}}</div>
+    {{KID_BLOCK}}
+    <div class="sec">
+      <h2>{{TASTE_TITLE}}</h2>
+      <div class="tags">{{TASTE_TAGS}}</div>
+    </div>
+    <div class="sec">
+      <h2>{{PLATE_TITLE}}</h2>
+      {{NUTRITION}}
+    </div>
+    <div class="sec">
+      <h2>月度节奏</h2>
+      <div class="months">{{MONTH_BARS}}</div>
+    </div>
+    <div class="sec">
+      <h2>点得最多的单品</h2>
+      {{TOP_ITEMS}}
+    </div>
+  </div>
+  <div class="foot">
+    <span>{{FOOT_NOTE}}</span>
+    <span>{{FOOT_TIME}}</span>
+  </div>
+</div>
+</body>
+</html>
