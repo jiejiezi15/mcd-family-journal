@@ -283,19 +283,6 @@ def render_stat(value, unit, label, key):
     )
 
 
-def render_bars(counter, unit="份"):
-    total = sum(counter.values()) or 1
-    colors = {"汉堡": "#DA291C", "小食": "#FFC72C", "饮料": "#4A90D9", "甜品": "#E88BB0", "其他": "#B8B0A5"}
-    html = []
-    for name, value in counter.most_common():
-        pct = value / total * 100
-        html.append(
-            '<div class="bar"><div class="t"><span>' + name + "</span><span>"
-            + str(value) + " " + unit + " · " + str(round(pct)) + "%</span></div>"
-            '<div class="track"><div class="fill" style="width:' + str(round(pct)) + "%;background:"
-            + colors.get(name, "#B8B0A5") + '"></div></div></div>'
-        )
-    return "".join(html)
 
 
 def render_months(counter):
@@ -311,6 +298,20 @@ def render_months(counter):
         html.append(
             '<div class="' + cls + '"><i style="height:' + str(height) + 'px"></i><b>'
             + key[5:7] + "月</b></div>"
+        )
+    return "".join(html)
+
+
+def render_bars(counter, unit="份"):
+    total = sum(counter.values()) or 1
+    html = []
+    for name, value in counter.most_common():
+        pct = value / total * 100
+        html.append(
+            '<div class="bar"><div class="t"><span>' + name + "</span><span>"
+            + str(value) + " " + unit + " · " + str(round(pct)) + "%</span></div>"
+            '<div class="track"><div class="fill" style="width:' + str(round(pct))
+            + '%;background:#FFC72C"></div></div></div>'
         )
     return "".join(html)
 
@@ -342,11 +343,10 @@ def render_taste(items):
     top = scores[0][1]
     out = []
     for label, score in scores[:7]:
-        alpha = round(0.18 + 0.82 * (score / top), 2)
-        fg = "#fff" if alpha > 0.55 else "#8A3A00"
+        weight = "600" if score == top else "400"
         out.append(
-            '<span class="tag" style="background:rgba(218,41,28,' + str(alpha)
-            + ");color:" + fg + '">' + label + " ×" + str(score) + "</span>"
+            '<span class="tag" style="font-weight:' + weight + '">' + label
+            + " ×" + str(score) + "</span>"
         )
     return "".join(out)
 
