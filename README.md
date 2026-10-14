@@ -1,57 +1,55 @@
-# mcd-crew-catering · 麦当劳班组团餐助手
+# mcd-family-journal · 我与麦当劳
 
-> 一句话：给十几个人订麦当劳，不用再挨个问、不用手算预算。报人数和人均预算，三套可直接下单的方案就出来了。
+> 一句话：把麦当劳账号里零散的历史订单，变成一份可点击、可切换、能截图分享的消费档案。
 
-一个基于 [麦当劳官方 MCP](https://github.com/M-China/mcd-mcp-server) 的 WorkBuddy Skill，专攻**企业团餐（beType=6）**场景 —— 这是麦当劳 MCP 里唯一带「助餐服务」、也是官方唯一主动要求「引导用户提供人数与预算」的业务形态。
-
----
-
-## 它解决什么
-
-班组加班订餐，真实的麻烦从来不是「吃什么」，而是这四件事：
-
-- 十几个人口味不一，凑不出一套能落地的组合
-- 预算是死的，凑完单不知道人均超没超
-- 优惠券散在各处，不知道哪些能用在团餐上
-- 团餐有专属的助餐服务（分装、集中配送等），普通点餐流程根本不会走到那一步
-
-本技能把这条链路整个跑通：**人数 + 预算 → 可配送门店 → 菜单与套餐 → 助餐服务 → 领券 → 人均实付 → Top3 方案 → 确认后下单**。
+一个基于 [麦当劳官方 MCP](https://github.com/M-China/mcd-mcp-server) 的 WorkBuddy Skill。它拉取你账号里**真实的历史订单**，算出吃了多少顿、花了多少钱、最常去哪家店、最爱点什么、口味偏哪一类，然后渲染成一张交互式 HTML 档案页。
 
 ---
 
-## 对话示例
+## 页面能做什么
+
+它不是一张静态图，而是一个可以点的页面：
+
+| 操作 | 效果 |
+|---|---|
+| 点顶部「个人版 / 家庭版」 | 切换档案视角，标题、徽章、文案随之变化 |
+| 点四张概览卡片 | 下方展开明细：每月吃了几顿 / 最近几笔花费 / 去得最多的门店 / 点得最多的单品 |
+| 再点一次同一张卡片 | 收起明细 |
+
+**个人版**：「我与麦当劳」「你的口味画像」，适合一个人复盘自己的饮食习惯。
+
+**家庭版**：「我家与麦当劳」「一家人的口味画像」。如果订单里有开心乐园餐，会额外长出一份**娃的麦当劳成长册** —— 第一次带娃吃是哪天在哪家店、带娃吃过几次、娃最常点哪一款。没有儿童餐记录时，显示引导文案而不是报错。
+
+---
+
+## 档案里有什么
+
+| 模块 | 内容 |
+|---|---|
+| 概览卡片 | 总顿数、累计花费、最常去的门店、最爱的单品（可点开看明细） |
+| 娃的麦当劳成长册 | 仅家庭版：第一次带娃的时间与门店、带娃次数、娃最常点的儿童餐、最近一次 |
+| 口味画像 | 辣党 / 鸡肉派 / 牛肉党 / 薯条控 / 甜品胃 / 咖啡因 / 汽水党，按频次排序 |
+| 餐盘构成 | 汉堡、小食、饮料、甜品的占比条 |
+| 月度节奏 | 按月统计的柱状节奏，最近一个月高亮 |
+| 点得最多的单品 | Top 6 排行 |
+
+示例（虚构数据，仅示意版式）：
 
 ```
-> 班组 12 个人加班，订个麦当劳，人均 30 左右
-
-人数 12、人均预算 30 元，总预算 360 元。
-已定位可配送门店：青岛 XX 餐厅（支持团餐配送）
-该门店助餐服务：统一分装 / 集中配送 / 提供餐具
-
-| 项         | A 省钱档 | B 均衡档  | C 加料档 |
-|-----------|---------|----------|---------|
-| 套餐构成    | 汉堡+饮料 | 汉堡+薯条+饮料 | 汉堡+薯条+小食+饮料 |
-| 单份价     | 24.5    | 29.4     | 38.0    |
-| 优惠       | 满100减15 | 满100减15 | 满150减20 |
-| 配送费     | 9       | 9        | 9       |
-| 总价       | 303     | 361.8    | 465     |
-| 人均实付    | 25.3    | 30.2     | 38.8    |
-
-推荐方案 B，人均 30.2 元，最贴合预算且结构均衡。
-确认下单请回复「方案 B 下单」。
+共 32 顿 · ¥1,286 · 最常去的店：XX 中心餐厅 · 最爱的单品：麦辣鸡腿汉堡
+口味：鸡肉派 ×48　辣党 ×22　牛肉党 ×15　汽水党 ×14　甜品胃 ×9
+娃的成长册：第一次 2024-06-01 · 带娃 11 次 · 最爱麦乐鸡开心乐园餐
 ```
-
-下单前会完整复述门店、构成、份数、优惠、总价、人均、地址与时间，**得到明确确认才会创建订单**。
 
 ---
 
-## 亮点
+## 为什么做这个
 
-- **吃透团餐专属链路**：`query-meal-assistance` 取 `gmServiceCode`，一路带到计价与下单。绝大多数同类项目根本不会走到这一步。
-- **官方搭配规则内置**：直接采用 `query-meals` 描述中的预算分档规则（20 元以下 / 20–30 / 30–40 / 40–50 / 50 以上），不靠拍脑袋。
-- **强制确认闸门**：`create-order` 之前必须有明确确认，杜绝误下单。
-- **参数坑全部记进技能**：`beType` / `orderType` / `beCode` 配对规则、价格单位为分、401 与 429 的区分，都写进了参考文档，不靠模型现场猜。
-- **自带连通性自检**：`scripts/check_mcp.py` 一条命令定位 Token、限流、工具缺失问题。
+麦当劳 MCP 上的多数作品是省钱凑单、营养计算、点餐助手 —— 都是**工具型**的：有用，但用完就走。
+
+这个技能走的是另一条路：**输出即内容**。它不解决"这顿吃什么"，而是把已经发生的事讲成一个故事，产出一个你愿意截图发出去的页面。
+
+技术上也不含糊：真实订单解析、套餐子项展开、儿童餐识别、口味关键词打分、分类统计，全部基于真实接口返回，没有模拟数据。页面是单文件、无外部依赖、纯原生 JS，双击就能打开。
 
 ---
 
@@ -63,7 +61,7 @@
 
 ### 2. 配置 MCP 连接器
 
-在 WorkBuddy 中走「自定义连接器 → 配置 MCP」，填入（把占位符换成真实 Token）：
+在 WorkBuddy 中走「自定义连接器 → 配置 MCP」：
 
 ```json
 {
@@ -81,53 +79,71 @@
 
 三个易错点：
 
-1. `Authorization` 必须是 `Bearer <Token>`，**`Bearer ` 前缀不能少**，否则服务端判无效
+1. `Authorization` 必须是 `Bearer <Token>`，**`Bearer ` 前缀不能少**
 2. `url` 只能是 `https://mcp.mcd.cn`，旧路径连不上
 3. 改完配置需在 WorkBuddy 中**关闭再开启一次连接器**才生效
-
-仓库中的 `mcp-config.example.json` 为脱敏示例，占位符为 `${MCD_MCP_TOKEN}`。
 
 ### 3. 安装 Skill
 
 ```bash
-git clone https://github.com/<your-username>/mcd-crew-catering.git
-cp -r mcd-crew-catering ~/.workbuddy/skills/
+git clone https://github.com/<your-username>/mcd-family-journal.git
+cp -r mcd-family-journal ~/.workbuddy/skills/
 ```
 
-重启 WorkBuddy 后即可触发。
-
-### 4. 验证
+### 4. 生成档案页
 
 ```bash
 export MCD_MCP_TOKEN=<你的Token>
-python3 ~/.workbuddy/skills/mcd-crew-catering/scripts/check_mcp.py
+python3 ~/.workbuddy/skills/mcd-family-journal/scripts/build_journal.py --out ~/Desktop
 ```
 
-输出工具总数与「团餐链路所需工具齐全」即安装成功。
+得到单个文件 `mcd-journal.html`，双击打开即可。
+
+想指定默认视角：
+
+```bash
+python3 scripts/build_journal.py --mode family    # 默认打开家庭版
+python3 scripts/build_journal.py --mode personal  # 默认打开个人版
+```
+
+默认 `--mode auto`：有开心乐园餐订单就开家庭版，否则个人版。两种视角都在文件里，随时可切。
+
+先跑自检确认环境：
+
+```bash
+python3 scripts/check_mcp.py
+```
+
+也可以直接在 WorkBuddy 里说一句：「帮我看看我这一年吃了多少顿麦当劳」。
 
 ---
 
-## 会触发它的说法
+## 隐私
 
-- 「班组 12 个人加班，订个麦当劳，人均 30 左右」
-- 「明天中午给项目部订团餐，20 人，预算 800」
-- 「十几个人夜班加餐，帮我配几套方案对比」
-- 「这个门店团餐有什么助餐服务」
+这件事值得单独说清楚：
+
+- 全部数据只在本机处理，脚本**不上传任何内容**，产物保存在你指定的本地目录
+- 档案页含真实门店、金额与时间，**属于个人信息**，请勿提交到公开仓库
+- 本仓库不包含任何示例订单、真实数据或 Token；README 中的示例均为虚构
+- `.gitignore` 已排除所有可能含凭证的文件
 
 ---
 
 ## 目录结构
 
 ```
-mcd-crew-catering/
+mcd-family-journal/
 ├── SKILL.md                          技能主文件
-├── references/
-│   ├── mcp-tools.md                  35 个工具全景 + 团餐链路参数细节
-│   └── crew-catering-playbook.md     搭配策略、预算算法、实战话术
 ├── scripts/
+│   ├── build_journal.py              拉数据 + 统计 + 渲染档案页
 │   └── check_mcp.py                  连通性自检
 ├── assets/
-│   └── plan-template.md              Top3 方案输出模板
+│   └── journal-template.html         页面模板（含交互逻辑）
+├── references/
+│   ├── mcp-tools.md                  MCP 工具全景与订单数据结构
+│   └── crew-catering-playbook.md     团餐实战手册（早期方向留存）
+├── legacy/
+│   └── crew-catering-SKILL.md        早期团餐版本完整存档
 ├── mcp-config.example.json           脱敏配置示例
 ├── MCP_INTEGRATION.md                MCP 集成说明
 ├── CONTEST_DECLARATION.md            参赛声明（官方原文）
@@ -138,26 +154,15 @@ mcd-crew-catering/
 
 ## 使用的 MCP 工具
 
-| 环节 | 工具 |
+| 工具 | 用途 |
 |---|---|
-| 配送地址 | `delivery-query-addresses`、`delivery-create-address` |
-| 可配送门店 | `delivery-query-stores`（`beType=6`） |
-| 菜单与套餐 | `query-meals`、`query-meal-detail` |
-| 助餐服务 | `query-meal-assistance` |
-| 优惠券 | `available-coupons`、`auto-bind-coupons`、`query-my-coupons` |
-| 计价 | `calculate-price` |
-| 下单 | `create-order`（需确认） |
-| 积分与抽奖 | `query-my-account`、`query-lottery-info` |
+| `order-list` | 拉取历史订单，全部统计的数据源 |
+| `query-my-account` | 账号积分，用于页脚 |
+| `query-my-prizes` | 抽奖奖品，可选扩展 |
+| `campaign-calendar` | 活动日历，用于解读消费密集期 |
+| `list-nutrition-foods` | 营养数据，可选扩展 |
 
-完整清单与调用流程见 [MCP_INTEGRATION.md](./MCP_INTEGRATION.md)。
-
----
-
-## 安全
-
-- 本仓库**不包含任何 Token、密钥或账号凭证**，配置文件仅使用环境变量占位符。
-- Token 等同麦当劳账户钥匙（可领券、可下单），请勿提交到任何公开位置。
-- 未经用户明确确认，技能不会调用 `create-order`。
+详见 [MCP_INTEGRATION.md](./MCP_INTEGRATION.md)。
 
 ---
 

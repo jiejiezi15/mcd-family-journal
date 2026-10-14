@@ -225,9 +225,10 @@ def analyze(orders):
     }
 
 
-def render_stat(value, unit, label):
+def render_stat(value, unit, label, key):
     return (
-        '<div class="stat"><div class="n">' + str(value) + "<small>" + unit + "</small></div>"
+        '<div class="stat" data-key="' + key + '"><div class="n">' + str(value)
+        + "<small>" + unit + "</small></div>"
         '<div class="l">' + label + "</div></div>"
     )
 
@@ -322,8 +323,57 @@ def render_kid_block(stat, mode):
     return '<div class="sec"><h2>娃的麦当劳成长册</h2><div class="kid">' + body + "</div></div>"
 
 
-def build_html(stat, points, mode):
+def build_sections(stat, mode):
     text = MODE_TEXT[mode]
+    return (
+        render_kid_block(stat, mode)
+        + '<div class="sec"><h2>' + text["taste"] + '</h2><div class="tags">'
+        + render_taste(stat["items"]) + "</div></div>"
+        + '<div class="sec"><h2>' + text["plate"] + "</h2>" + render_bars(stat["cats"]) + "</div>"
+        + '<div class="sec"><h2>月度节奏</h2><div class="months">'
+        + render_months(stat["months"]) + "</div></div>"
+        + '<div class="sec"><h2>点得最多的单品</h2>'
+        + render_top_items(stat["items"]) + "</div>"
+    )
+
+
+def detail_rows(title, pairs):
+    rows = "".join(
+        '<div class="row"><span>' + str(k) + "</span><span>" + str(v) + "</span></div>"
+        for k, v in pairs
+    )
+    return "<h3>" + title + "</h3>" + rows
+
+
+def build_details(stat, orders):
+    month_pairs = [
+        (m + " 月", str(c) + " 顿") for m, c in sorted(stat["months"].items())
+    ]
+    amounts = []
+    for order in orders:
+        try:
+            value = float(order.get("realTotalAmount") or 0)
+        except ValueError:
+            continue
+        amounts.append(((order.get("createTime") or "")[:10], "¥" + str(round(value, 1))))
+    amounts.sort(key=lambda x: x[0], reverse=True)
+    avg = round(stat["total_amount"] / stat["count"], 1) if stat["count"] else 0
+    amount_pairs = [("平均每顿", "¥" + str(avg))] + amounts[:8]
+    store_pairs = [(name, str(c) + " 顿") for name, c in stat["stores"].most_common(8)]
+    item_pairs = [(name, str(c) + " 份") for name, c in stat["items"].most_common(10)]
+    return {
+        "count": detail_rows("每月吃了几顿", month_pairs),
+        "amount": detail_rows("最近几笔花费", amount_pairs),
+        "stores": detail_rows("去得最多的门店", store_pairs),
+        "items": detail_rows("点得最多的单品", item_pairs),
+    }
+
+
+def safe_json(value):
+    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
+
+
+def build_html(stat, points, default, orders):
     times = stat["times"]
     span = ""
     if times:
@@ -334,29 +384,34 @@ def build_html(stat, points, mode):
 
     stats = "".join(
         [
-            render_stat(stat["count"], " 顿", text["first_stat"]),
-            render_stat(amount, " 元", "累计花费"),
-            render_stat(top_store[0][0][:6] if top_store else "—", "", "最常去的店"),
-            render_stat(top_item[0][0][:6] if top_item else "—", "", "最爱的单品"),
+            render_stat(stat["count"], " 顿", "吃过", "count"),
+            render_stat(amount, " 元", "累计花费", "amount"),
+            render_stat(top_store[0][0][:6] if top_store else "—", "", "最常去的店", "stores"),
+            render_stat(top_item[0][0][:6] if top_item else "—", "", "最爱的单品", "items"),
         ]
     )
+
+    views = {
+        "personal": build_sections(stat, "personal"),
+        "family": build_sections(stat, "family"),
+    }
+    details = build_details(stat, orders)
+    modes = {"personal": MODE_TEXT["personal"], "family": MODE_TEXT["family"]}
 
     template = (Path(__file__).resolve().parent.parent / "assets" / "journal-template.html").read_text(
         encoding="utf-8"
     )
     foot_note = "账号积分 " + str(points) + " · 数据来自麦当劳官方 MCP" if points else "数据来自麦当劳官方 MCP"
     return (
-        template.replace("{{BADGE}}", text["badge"])
-        .replace("{{TITLE}}", text["title"])
-        .replace("{{SUBTITLE}}", span + " · 共 " + str(stat["count"]) + " 顿")
+        template.replace("{{MODE_JSON}}", safe_json(modes))
+        .replace("{{VIEWS_JSON}}", safe_json(views))
+        .replace("{{DETAILS_JSON}}", safe_json(details))
         .replace("{{STATS}}", stats)
-        .replace("{{KID_BLOCK}}", render_kid_block(stat, mode))
-        .replace("{{TASTE_TITLE}}", text["taste"])
-        .replace("{{PLATE_TITLE}}", text["plate"])
-        .replace("{{TASTE_TAGS}}", render_taste(stat["items"]))
-        .replace("{{NUTRITION}}", render_bars(stat["cats"]))
-        .replace("{{MONTH_BARS}}", render_months(stat["months"]))
-        .replace("{{TOP_ITEMS}}", render_top_items(stat["items"]))
+        .replace("{{VIEW_DEFAULT}}", views[default])
+        .replace("{{DEFAULT_MODE}}", default)
+        .replace("{{BADGE}}", modes[default]["badge"])
+        .replace("{{TITLE}}", modes[default]["title"])
+        .replace("{{SUBTITLE}}", span + " · 共 " + str(stat["count"]) + " 顿")
         .replace("{{FOOT_NOTE}}", foot_note)
         .replace("{{FOOT_TIME}}", "生成于 " + datetime.now().strftime("%Y-%m-%d %H:%M"))
     )
@@ -404,17 +459,17 @@ def main():
         points = ""
 
     stat = analyze(orders)
-    mode = args.mode
-    if mode == "auto":
-        mode = "family" if stat["kid_orders"] else "personal"
-    html = build_html(stat, points, mode)
+    default = args.mode
+    if default == "auto":
+        default = "family" if stat["kid_orders"] else "personal"
+    html = build_html(stat, points, default, orders)
 
     out_dir = Path(args.out).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / ("mcd-journal-" + mode + ".html")
+    out_file = out_dir / "mcd-journal.html"
     out_file.write_text(html, encoding="utf-8")
 
-    print("模式: " + ("个人版" if mode == "personal" else "家庭版"))
+    print("默认视角: " + ("个人版" if default == "personal" else "家庭版") + "（页面内可一键切换）")
     print("已读取 " + str(len(orders)) + " 笔历史订单")
     print("带娃订单: " + str(len(stat["kid_orders"])) + " 笔")
     print("海报已生成: " + str(out_file))
