@@ -6,6 +6,23 @@
 
 ---
 
+## 先看效果
+
+没有 MCP Token 也能看：[examples/demo.html](./examples/demo.html)
+
+这是用 12 笔**虚构订单**生成的完整示例，下载后双击打开即可，包含娃的成长册、AI 观察、常点搭配等全部模块。
+
+想看自己的，一条命令：
+
+```bash
+export MCD_MCP_TOKEN=<你的Token>
+python3 scripts/build_journal.py --out ~/Desktop
+```
+
+版式一样，数据换成你自己的。
+
+---
+
 ## 页面能做什么
 
 它不是一张静态图，而是一个可以点的页面：
@@ -136,9 +153,12 @@ mcd-family-journal/
 ├── SKILL.md                          技能主文件
 ├── scripts/
 │   ├── build_journal.py              拉数据 + 统计 + 渲染档案页
+│   ├── make_demo.py                  用虚构数据生成示例页（无需 Token）
 │   └── check_mcp.py                  连通性自检
 ├── assets/
 │   └── journal-template.html         页面模板（含交互逻辑）
+├── examples/
+│   └── demo.html                     示例档案页，可直接双击打开
 ├── references/
 │   ├── mcp-tools.md                  MCP 工具全景与订单数据结构
 │   └── crew-catering-playbook.md     团餐实战手册（早期方向留存）
