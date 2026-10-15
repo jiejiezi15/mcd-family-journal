@@ -18,7 +18,7 @@
   .sw { font-family:inherit; font-size:12px; padding:6px 14px; border-radius:16px; border:1px solid #E3C46A; background:#fff; color:#8A5A00; cursor:pointer; }
   .sw.on { background:#DA291C; border-color:#DA291C; color:#fff; }
   .body { padding:26px 36px 30px; }
-  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); grid-gap:12px; gap:12px; margin-bottom:14px; }
   .stat { background:#FFF9E8; border-radius:12px; padding:14px 12px; text-align:center; cursor:pointer; border:1px solid transparent; transition:.15s; }
   .stat:hover { border-color:#FFC72C; transform:translateY(-1px); }
   .stat.on { background:#DA291C; }
@@ -63,12 +63,12 @@
   .empty { background:#F7F5F1; border-radius:12px; padding:22px; text-align:center; font-size:13px; color:#7A6F62; }
   .foot { border-top:1px solid #F0ECE5; padding:16px 36px 20px; display:flex; justify-content:space-between; font-size:11px; color:#9A8F82; }
 
-  .picker { position:fixed; inset:0; background:#F5F3EF; display:none; align-items:center; justify-content:center; z-index:9; }
+  .picker { position:fixed; top:0; right:0; bottom:0; left:0; background:#F5F3EF; display:none; align-items:center; justify-content:center; z-index:9; }
   .picker.on { display:flex; }
   .picker .box { text-align:center; max-width:600px; padding:24px; }
   .picker h2 { font-size:20px; font-weight:600; margin-bottom:6px; }
   .picker .sub { font-size:13px; color:#7A6F62; margin-bottom:26px; }
-  .picker .opts { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .picker .opts { display:grid; grid-template-columns:1fr 1fr; grid-gap:16px; gap:16px; }
   .picker .opt { background:#fff; border:2px solid transparent; border-radius:16px; padding:26px 20px; cursor:pointer; transition:.15s; box-shadow:0 2px 16px rgba(31,27,22,.06); }
   .picker .opt:hover { border-color:#DA291C; transform:translateY(-2px); }
   .picker .opt .em { font-size:30px; font-weight:600; color:#DA291C; margin-bottom:10px; }
@@ -118,6 +118,18 @@
     .stat:hover { border-color:transparent; transform:none; }
     .months .m:hover i { background:#FFC72C; }
     .picker .opt:hover { border-color:transparent; transform:none; }
+  }
+  /* 老内核（部分 Android 微信 X5、iOS 14.1 以下）不支持 flex gap，用 margin 兜底 */
+  @supports not (gap:8px) {
+    .switchbar > * + * { margin-left:8px; }
+    .tags .tag { margin:0 8px 8px 0; }
+    .months .m + .m { margin-left:6px; }
+    .pair .p + .p { margin-top:8px; }
+    .insight .li i { margin-right:10px; }
+  }
+  /* 长门店名 / 长单品名在窄屏强制换行，防横向溢出 */
+  .detail .row span, .kid .row span, .pair .p span, .bar .t span {
+    overflow-wrap:anywhere; word-break:break-word;
   }
 </style>
 </head>
