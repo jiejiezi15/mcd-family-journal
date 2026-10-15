@@ -8,9 +8,13 @@
 
 ## 先看效果
 
-没有 MCP Token 也能看：[examples/demo.html](./examples/demo.html)
+**在线预览（点开即看，手机直接打开）**：<https://mcd-family-journal-demo.app.workbuddy.host/>
 
-这是用 12 笔**虚构订单**生成的完整示例，下载后双击打开即可，包含娃的成长册、AI 观察、常点搭配等全部模块。
+也可以下载示例文件：[examples/demo.html](./examples/demo.html)
+
+两者是同一份页面，用 12 笔**虚构订单**生成 —— 不需要 MCP Token 就能看到全部模块：娃的成长册、AI 观察、常点搭配、口味画像、月度节奏。页面可直接点击交互，不用装任何东西。
+
+页面已做移动端适配：窄屏下统计卡自动两列、留白收紧，iOS Safari / Android Chrome / 微信内置浏览器都能正常打开，方便截图分享。
 
 想看自己的，一条命令：
 
