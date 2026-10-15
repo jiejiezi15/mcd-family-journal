@@ -8,6 +8,11 @@
 
 ## 先看效果
 
+<div align="center">
+  <img src="./assets/preview-desktop.png" width="47%" alt="桌面版档案页">
+  <img src="./assets/preview-mobile.png" width="30%" alt="手机版档案页">
+</div>
+
 **在线预览（点开即看，手机直接打开）**：<https://mcd-family-journal-demo.app.workbuddy.host/>
 
 也可以下载示例文件：[examples/demo.html](./examples/demo.html)
