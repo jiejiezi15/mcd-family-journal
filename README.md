@@ -103,7 +103,7 @@ python3 scripts/build_journal.py --out ~/Desktop
 ### 3. 安装 Skill
 
 ```bash
-git clone https://github.com/<your-username>/mcd-family-journal.git
+git clone https://github.com/jiejiezi15/mcd-family-journal.git
 cp -r mcd-family-journal ~/.workbuddy/skills/
 ```
 
