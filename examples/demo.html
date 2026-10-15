@@ -74,6 +74,51 @@
   .picker .opt .em { font-size:30px; font-weight:600; color:#DA291C; margin-bottom:10px; }
   .picker .opt .tt { font-size:15px; font-weight:600; margin-bottom:6px; }
   .picker .opt .ds { font-size:12px; color:#7A6F62; line-height:1.6; }
+
+  .stat, .sw, .opt, .months .m { touch-action:manipulation; }
+
+  /* ---------- 移动端适配 ---------- */
+  @media (max-width:640px) {
+    body { padding:14px 10px; -webkit-text-size-adjust:100%; }
+    .card { border-radius:16px; }
+    .head { padding:22px 18px 20px; }
+    .head::after { width:110px; height:110px; right:-30px; top:-30px; }
+    .head h1 { font-size:22px; }
+    .head p { font-size:12px; }
+    .switchbar { padding:11px 18px; gap:6px; }
+    .sw { padding:8px 15px; font-size:13px; }
+    .body { padding:18px 18px 22px; }
+    .stats { grid-template-columns:repeat(2,1fr); gap:10px; }
+    .stat { padding:12px 10px; }
+    .stat .n { font-size:21px; }
+    .detail { padding:14px; }
+    .kid { padding:15px; }
+    .kid .row { font-size:12px; }
+    .insight { padding:4px 14px; }
+    .insight .li { font-size:12px; }
+    .months { gap:4px; height:76px; }
+    .months .m b { font-size:9px; margin-top:5px; }
+    .pair .p { padding:10px 12px; font-size:12px; }
+    .foot { padding:13px 18px 16px; flex-direction:column; align-items:flex-start; gap:4px; }
+    .picker .box { padding:18px 16px; }
+    .picker h2 { font-size:18px; }
+    .picker .sub { margin-bottom:18px; }
+    .picker .opts { grid-template-columns:1fr; gap:12px; }
+    .picker .opt { padding:20px 18px; }
+    .picker .opt .em { font-size:26px; margin-bottom:8px; }
+  }
+  @media (max-width:360px) {
+    .months { gap:3px; }
+    .months .m b { font-size:8px; }
+    .stat .n { font-size:19px; }
+    .head h1 { font-size:20px; }
+  }
+  /* 触屏设备不保留 hover 残留态 */
+  @media (hover:none) {
+    .stat:hover { border-color:transparent; transform:none; }
+    .months .m:hover i { background:#FFC72C; }
+    .picker .opt:hover { border-color:transparent; transform:none; }
+  }
 </style>
 </head>
 <body>
@@ -114,7 +159,7 @@
   </div>
   <div class="foot">
     <span>账号积分 1286 · 数据来自麦当劳官方 MCP</span>
-    <span>生成于 2026-10-15 07:48</span>
+    <span>生成于 2026-10-15 08:14</span>
   </div>
 </div>
 <script>
